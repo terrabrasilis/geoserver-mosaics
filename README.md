@@ -43,7 +43,7 @@ user@machine:~/Downloads/images_cer/im_2010$ /home/user/Downloads/geoserver_mosa
 ```
 ## Output
 
-The scripts creates intermediate folders and GeoTIFF files. By default, the folder named with "year" is used as input of Image Pyramid GeoServer, move this folder to directory of GeoServer data. After script execution, the intermediate files and folders can be removed to trash. 
+The scripts create intermediate folders and GeoTIFF files. By default, the folder named with "year" is used as input of Image Pyramid GeoServer, move this folder to directory of GeoServer data. After script execution, the intermediate files and folders can be removed to trash. 
 
 # Online Resource
 

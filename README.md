@@ -9,12 +9,13 @@ These scripts will automatically build mosaics to create tiled raster image (pyr
 
 # Directory Guide and Input Data
 
-The directories are grouped by brazilian biomes and Legal Amazon: "amazonia", includes the Legal Amazon, "cerrado" with the Cerrado biome, and "others_biomes" that comprises four biomes: Caatinga, Mata Atlântica, Pantanal and Pampa.
+The directories are grouped by brazilian biomes and Legal Amazon: "amazonia", includes the Legal Amazon, "cerrado" with the Cerrado biome, and others biomes that comprises four biomes: Caatinga, Mata Atlântica, Pantanal and Pampa.
 
-All the images must be in Geotiff (.tif) raster file format. For images coming from Legal Amazon, all of them must have correct Landsat path and row in filename where appropriate and possible, i.e, "Landsat8_OLI_219_64_17082019.tif". 
+All the images must be in Geotiff (.tif) raster file format. For images coming from Legal Amazon, all of them must have correct Landsat path and row in filename where appropriate and possible, i.e, "Landsat8_OLI_21964_17082019.tif". 
 
 For each script is necessary edit the contents of variable "shapefile" and put the path to shapefile with the biome limits. The shapefile must be in the geographic coordinate system EPSG:4326.  
 
+When the script have "rscript_file" variable, is used a R script to cut each image by your landsat grid scene to avoid border sobreposition. In this case is necessary the landsat grid shapefile contains a feature called "pathrow" in format of 5 digits 00527, and not in 005/27.
 
 # Usage
 

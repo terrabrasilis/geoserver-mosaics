@@ -1,7 +1,7 @@
 #!/bin/bash
 echo
 
-# NOTE: change from 16bits to 8btis, change nodata value to 0, projection to EPSG: 4326, and merge scenes as a mosaic. Years from 2000 to 2018
+# NOTE: Cerrado biome - Years 2000, 2002, 2004, 2006, 2008, 2010, 2011, 2012, 2013, 2014, 2016, 2015, 2017, 2018, 2019, 2020 and 2021.
 
 echo "Input year: $1"
 year=$1

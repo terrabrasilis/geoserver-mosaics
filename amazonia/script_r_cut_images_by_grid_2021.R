@@ -74,7 +74,11 @@ if (length(args)==2) {
       # change last band value from 0 to 1
       # raster.sub[[3]]
       raster.sub[[3]][raster.sub[[3]] == 0] <- 1
+      raster.sub[[2]][raster.sub[[2]] == 0] <- 1
+      raster.sub[[1]][raster.sub[[1]] == 0] <- 1
       raster.sub[[3]][raster.sub[[3]] == 255] <- 254
+      raster.sub[[2]][raster.sub[[2]] == 255] <- 254
+      raster.sub[[1]][raster.sub[[1]] == 255] <- 254
       
       ## save raster only for the shape that match with grid
       raster::writeRaster(raster.sub, filename = paste(rasterFolder, newFolder, "/", filename, "_cutted.tif", sep = ""), format="GTiff", datatype = "INT1U", overwrite=TRUE)

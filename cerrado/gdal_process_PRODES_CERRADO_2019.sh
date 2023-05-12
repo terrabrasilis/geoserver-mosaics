@@ -98,7 +98,7 @@ cd ${mydir}/
 dir=$year
 mkdir -p $dir
 echo "----- Directory created: ${dir} -----"
-echo 
+echo
 
 echo
 echo "----- Retile mosaic -----"

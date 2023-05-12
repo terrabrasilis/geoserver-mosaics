@@ -2,6 +2,9 @@
 echo
 
 # NOTE: Cerrado biome - Years 2000, 2002, 2004, 2006, 2008, 2010, 2011, 2012, 2013, 2014, 2016, 2015, 2017, 2018, 2019, 2020 and 2021.
+# Need to define the year of the mosaic
+# Link: http://terrabrasilis.dpi.inpe.br/geoserver/prodes-cerrado-nb/wms?service=WMS&version=1.1.0&request=GetMap&layers=prodes-cerrado-nb%3Atemporal_mosaic_cerrado&bbox=-60.472596%2C-24.6817797920001%2C-41.277535892%2C-2.332088&width=659&height=768&srs=EPSG%3A4326&format=application/openlayers&TIME=2022
+# chage parameter TIME=2022
 
 echo "Input year: $1"
 year=$1
@@ -40,9 +43,9 @@ echo
 dir=temp8bits
 mkdir -p $dir
 
-for file in *.tif; do  #for file in *16bits*.tif; do 
+for file in *.tif; do  #for file in *16bits*.tif; do
   echo $file
-  gdal_translate -scale -ot Byte -a_nodata 0 -of GTiff "$file" "${dir}/${file}_8bits" 
+  gdal_translate -scale -ot Byte -a_nodata 0 -of GTiff "$file" "${dir}/${file}_8bits"
   #0 65535 0 255
   echo
 done
@@ -133,7 +136,7 @@ cd ${mydir}/
 dir=$year
 mkdir -p $dir
 echo "----- Directory created: ${dir} -----"
-echo 
+echo
 
 echo
 echo "----- retile mosaic -----"

@@ -49,7 +49,7 @@ shapefile_grid="/home/adeline/Dropbox/github_projects/geoserver-mosaics/shapefil
 printf $shapefile_grid
 
 #rscript_file="/[path]/caatinga/script_r_cut_images_by_grid_caatinga.R" # <- CHANGE ME
-rscript_file="/home/adeline/Dropbox/github_projects/geoserver-mosaics/caatinga/script_r_cut_images_by_grid_pantanal.R" # <- CHANGE ME
+rscript_file="/home/adeline/Dropbox/github_projects/geoserver-mosaics/caatinga/script_r_cut_images_by_grid_caatinga.R" # <- CHANGE ME
 printf $rscript_file
 
 #pyscript_file="/[path]/geoserver-mosaics/sentinel_hist.py" # <- CHANGE ME

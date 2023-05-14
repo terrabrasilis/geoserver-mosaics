@@ -30,6 +30,11 @@ When the script has the "rscript_file" variable, is used an R script to cut each
 
 You can use docker to run some of these applications in containers. You may need to install missing dependencies before you can install applications. The Docker Compose file is a YAML file defining services, networks and volumes. In docker folder there are examples of .yml files, before run then, create a Docker-Compose folder in localhost and change path in files.
 
+### Notes
+
+- If the shell script uses 'sentinel_hist.py', create an environment Python and execute scripts in this env.
+- If Pampa does not have an image with pathrow 22482, duplicate the GeoTIFF with pathrow 22481 and rename it 22482. It is necessary because of the stage of cutting images by grid Landsat.
+- Case Pantanal does not exist an image with pathrow 22571, duplicate GeoTIFF 22572 and rename it to 22571.
 
 ## Command line
 

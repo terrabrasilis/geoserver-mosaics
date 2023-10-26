@@ -7,7 +7,7 @@ echo
 # chage parameter TIME=2022
 
 year=$1
-
+data_dir="/pve12/share" # <- CHANGE ME
 # verify parameter
 if [ "$#" -eq 1 ]
     then
@@ -38,19 +38,20 @@ printf $mydir
 echo
 echo "Shapefile"
 ## AMZ LEGAL
-shapefile="/[path]/shapefiles/brazilian_legal_amazon/brazilian_legal_amazon_4326.shp" # <- CHANGE ME
+shapefile="${mydir}/../shapefiles/brazilian_legal_amazon/brazilian_legal_amazon_4326.shp" # <- CHANGE ME
 printf $shapefile
 
-shapefile_grid="/[path]/shapefiles/brazilian_legal_amazon/grid_landsat_brazilian_legal_amazon_4326.shp" # <- CHANGE ME
+shapefile_grid="${mydir}/../shapefiles/brazilian_legal_amazon/grid_landsat_brazilian_legal_amazon_4326.shp" # <- CHANGE ME
 printf $shapefile_grid
 
-rscript_file="/[path]/script_r_cut_images_by_grid_amz_legal.R" # <- CHANGE ME
+rscript_file="${mydir}/script_r_cut_images_by_grid_amz_legal.R" # <- CHANGE ME
 
 shopt -s nocasematch
 
 echo
 echo "----- gdal copy -----"
 echo
+cd ${data_dir}
 dir=tempCopy
 mkdir -p $dir
 

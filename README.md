@@ -55,6 +55,8 @@ The scripts create intermediate folders and GeoTIFF files. By default, the folde
 
 # Online Resource
 
+A more complete [README](https://github.com/ammaciel/mosaics-prodes-geoserver) file including the step-by-step Geoserver configuration tutorial.
+
 - [Image Pyramid](https://docs.geoserver.org/stable/en/user/tutorials/imagepyramid/imagepyramid.html)
 - [Building and using an image pyramid](https://docs.geoserver.org/latest/en/user/tutorials/imagepyramid/imagepyramid.html)
 - [Advanced Mosaics and Pyramids Configuration](https://docs.geoserver.geo-solutions.it/edu/en/raster_data/mosaic_pyramid.html)

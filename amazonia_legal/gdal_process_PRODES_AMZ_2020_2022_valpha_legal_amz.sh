@@ -5,7 +5,7 @@
 # chage parameter TIME=2022
 
 year=$1
-data_dir="/pve12/share" # <- CHANGE ME
+data_dir="/pve12/share/pri_images" # <- CHANGE ME
 # verify parameter
 if [ "$#" -eq 1 ]
 then

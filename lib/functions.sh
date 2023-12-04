@@ -26,3 +26,14 @@ hasTiffFiles(){
     fi;
     echo "${FOUNDED_FILES}"
 }
+
+# test if file exists in path, if not, exit
+fileExistsOrExit(){
+    FULL_PATH_AND_FILE="${1}"
+    if [[ ! -f "${FULL_PATH_AND_FILE}" ]];
+    then
+        echo "${FULL_PATH_AND_FILE}"
+        echo "File not found."
+        exit 1
+    fi;
+}

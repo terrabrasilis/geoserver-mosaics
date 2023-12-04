@@ -52,21 +52,21 @@ fi;
 
 exec > ${data_dir}/output_mosaic_${year}_${TODAY_DATE}.log 2>&1
 
-echo "Inicio: `date +%d-%m-%y_%H:%M:%S`"
-
+echo "Test location of shapefiles as grid and biome border"
 echo
-echo "Shapefile"
 ## AMZ LEGAL
 shapefile="${SCRIPT_LOCATION}/../shapefiles/limite_${biome}/${biome}_border_new_ibge_4326.shp" # <- CHANGE ME
-printf $shapefile
-echo
+fileExistsOrExit "${shapefile}"
+
 shapefile_grid="${SCRIPT_LOCATION}/../shapefiles/limite_${biome}/grid_landsat_${biome}_new_ibge_4326.shp" # <- CHANGE ME
-printf $shapefile_grid
+fileExistsOrExit "${shapefile_grid}"
 
 rscript_file="${SCRIPT_LOCATION}/script_r_cut_images_by_grid.R" # <- CHANGE ME
+fileExistsOrExit "${rscript_file}"
 
 shopt -s nocasematch
 
+echo "Starting process: `date +%d-%m-%y_%H:%M:%S`"
 echo
 echo "----- gdal copy -----"
 echo
@@ -74,15 +74,15 @@ echo
 cd ${data_dir}
 dir=tempCopy
 mkdir -p $dir
+echo "Copying files to: ${dir}"
 
 for file in *.tif; do
   filename=$(getFilename "${file}")
   extension=$(getExtension "${file}")
-  echo $file
   gdalmanage copy "$file" "${dir}/${filename}_copy.${extension}"
 done
 
-echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+echo "End of copying files: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
 echo "----- gdal unset NoData -----"
@@ -90,14 +90,13 @@ echo
 cd ${dir}
 
 for file in *.tif; do
-  echo $file
   gdal_edit.py "$file" -unsetnodata
-  echo
 done
-echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+
+echo "End of unset NoData: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
-echo "----- gdal EPSG:4326 -----"
+echo "----- gdal reproject to EPSG:4326 -----"
 echo
 
 dir=tempEPSG4326
@@ -106,21 +105,21 @@ mkdir -p $dir
 for file in *.tif; do
   filename=$(getFilename "${file}")
   extension=$(getExtension "${file}")
-  echo $file
+
   # read the source projection from input file
   SOURCE_SRC=""
-  SRC_TEST="$(gdalinfo Mosaico_Sentinel2_222076_20230611_20230721_8bits_8114_contraste.tif 2>/dev/null | grep -oP 'GEOGCRS\["unknown",')"
+  SRC_TEST="$(gdalinfo "${file}" 2>/dev/null | grep -oP 'GEOGCRS\["unknown",')"
   if [[ " GEOGCRS[\"unknown\", " = " ${SRC_TEST} " ]]; then
     # if is unknown so force the EPSG: 4674 (used on Cerrado imagens and need to be reviw for other biomes)
-    # -s_srs "EPSG:4674"
+    echo "WARNING: found unknown projection for: ${file}"
+    echo "WARNING: force geographical/SIRGAS 2000 (EPSG:4674) as INPUT projection."
     SOURCE_SRC="-s_srs EPSG:4674"
   fi;
 
   gdalwarp -of GTiff $SOURCE_SRC -t_srs "EPSG:4326" "$file" "${dir}/${filename}_4326.${extension}"
-  echo
 done
 
-echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+echo "End of reproject to EPSG:4326: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
 echo "----- Cut band to bounding line -----"
@@ -138,12 +137,13 @@ function Rscript_with_status {
   then
     echo -e "0"
     echo
-    echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+    echo "End of image cropping by biome grid: `date +%d-%m-%y_%H:%M:%S`"
     return 0
   else
     echo -e "1"
     echo
-    echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+    echo "ERROR: Something is wrong on R script."
+    echo "End of image cropping by biome grid: `date +%d-%m-%y_%H:%M:%S`"
     exit 1
   fi
 }
@@ -160,15 +160,13 @@ mkdir -p $dir
 for file in *.tif; do
   filename=$(getFilename "${file}")
   extension=$(getExtension "${file}")
-  echo $file
   gdal_translate -b 1 -b 2 -b 3 -of GTiff "$file" "${dir}/${filename}_noalpha.${extension}"
-  echo
 done
 
-echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+echo "End of remove alpha band: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
-echo "----- gdal NoData -----"
+echo "----- gdal set NoData for no alpha band files -----"
 echo
 cd tempNoAlphaBand/
 dir=tempNoData
@@ -177,12 +175,10 @@ mkdir -p $dir
 for file in *.tif; do
   filename=$(getFilename "${file}")
   extension=$(getExtension "${file}")
-  echo $file
   gdalwarp -of GTiff -t_srs EPSG:4326 -srcnodata "255 255 255" -dstnodata "0 0 0" "$file" "${dir}/${filename}_nodata.${extension}"
-  echo
 done
 
-echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+echo "End of set NoData for no alpha band files: `date +%d-%m-%y_%H:%M:%S`"
 
 echo "----- move result dir to base dir and remove temporary dirs and files -----"
 mv ${data_dir}/tempCopy/tempEPSG4326/tempCutted_buffer/tempNoAlphaBand/tempNoData/ ${data_dir}
@@ -192,13 +188,13 @@ echo
 echo "----- merge all scenes -----"
 gdal_merge.py -n 0 -a_nodata 0 -of GTiff -o ${data_dir}/mosaic_${year}_border.tif ${data_dir}/tempNoData/*.tif
 echo
-echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+echo "End of merge all scenes: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
 echo "----- gdal cutline -----"
 gdalwarp -ot Byte -q -of GTiff -srcnodata "0 0 0" -dstalpha -cutline ${shapefile} -crop_to_cutline -co BIGTIFF=YES -co COMPRESS=LZW -wo OPTIMIZE_SIZE=TRUE ${data_dir}/mosaic_${year}_border.tif ${data_dir}/mosaic_${year}.tif
 echo
-echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+echo "End of cutline using shapefile of biome border: `date +%d-%m-%y_%H:%M:%S`"
 
 cd ${data_dir}/
 dir=$year
@@ -213,4 +209,4 @@ echo
 
 echo "Script has been executed successfully"
 echo
-echo "Fim: `date +%d-%m-%y_%H:%M:%S`"
+echo "THE END: `date +%d-%m-%y_%H:%M:%S`"

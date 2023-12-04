@@ -3,7 +3,7 @@
 
 year=$1
 biome=$2
-data_dir="/pve12/share/images" # <- CHANGE ME
+data_dir="/pve12/share/cerrado/2023" # <- CHANGE ME
 
 TODAY_DATE=$(date '+%Y%m%d')
 echo

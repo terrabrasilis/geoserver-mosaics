@@ -40,11 +40,13 @@ cd -
 
 # test if data dir has some tif file
 FOUNDED_FILES=$(hasTiffFiles "${data_dir}")
+echo "Searching tif files in: ${data_dir}"
 if [[ ${FOUNDED_FILES} -gt 0 ]];
 then
   echo "Input tif files found, proceeding..."
 else
   echo "Input tif files not found, aborting..."
+  echo "Edit this script and set the correct location of input tif files."
   exit 1
 fi;
 

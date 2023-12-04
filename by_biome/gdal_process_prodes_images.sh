@@ -3,24 +3,30 @@
 
 year=$1
 biome=$2
-data_dir="/pve12/share/cerrado/2023" # <- CHANGE ME
+data_dir=$3
 
 TODAY_DATE=$(date '+%Y%m%d')
 echo
 echo "----- Testing input parameters  ${TODAY_DATE} -----"
 
 # verify parameter
-if [ "$#" -eq 2 ]
+if [ "$#" -eq 3 ]
 then
-  if [[ -v year && -v biome ]];
+  if [[ -v year && -v biome && -v data_dir ]];
   then
-    echo "Parameter year=${year} defined"
-    echo "Parameter biome=${biome} defined"
+    echo "Parameter year=${year}"
+    echo "Parameter biome=${biome}"
+    echo "Parameter data_dir=${data_dir}"
+    echo "Mandatory parameters are defined. Let's test it."
   fi;
 else
   CURRENT_YYYY=$(date '+%Y')
-  echo "Insert a parameter with year YYYY and the biome name like: amazonia or mata_atlantica"
-  echo "Example: ./gdal_process_prodes_images.sh ${CURRENT_YYYY} cerrado"
+  echo "Insert a parameters:"
+  echo " - with year YYYY;"
+  echo " - the biome name like: amazonia or mata_atlantica;"
+  echo " - the location directory where the input files are;"
+  echo 
+  echo "Example: ./gdal_process_prodes_images.sh ${CURRENT_YYYY} cerrado /pve12/share/cerrado/2023"
   echo
   exit 1
 fi;

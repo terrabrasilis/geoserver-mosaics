@@ -4,6 +4,11 @@
 year=$1
 biome=$2
 data_dir="/pve12/share/images" # <- CHANGE ME
+
+TODAY_DATE=$(date '+%Y%m%d')
+echo
+echo "----- Testing input parameters  ${TODAY_DATE} -----"
+
 # verify parameter
 if [ "$#" -eq 2 ]
 then
@@ -19,10 +24,6 @@ else
   echo
   exit 1
 fi;
-
-TODAY_DATE=$(date '+%Y%m%d')
-echo
-echo "----- Start processing ${TODAY_DATE} -----"
 
 # get location where the script is
 SCRIPT_LOCATION=$( dirname -- "$( readlink -f -- "$0"; )"; )
@@ -44,6 +45,7 @@ echo "Searching tif files in: ${data_dir}"
 if [[ ${FOUNDED_FILES} -gt 0 ]];
 then
   echo "Input tif files found, proceeding..."
+  echo "More details on log file: ${data_dir}/output_mosaic_${year}_${TODAY_DATE}.log"
 else
   echo "Input tif files not found, aborting..."
   echo "Edit this script and set the correct location of input tif files."

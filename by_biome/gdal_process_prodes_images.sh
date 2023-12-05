@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# https://gdal.org/drivers/raster/gtiff.html
+# GDAL_NUM_THREADS enables multi-threaded compression by specifying the number of worker threads.
+# Worth it for slow compression algorithms such as DEFLATE or LZMA. Will be ignored for JPEG.
+# Default is compression in the main thread. Note: this configuration option also apply to other
+# parts to GDAL (warping, gridding, ...). Starting with GDAL 3.6, this option also enables multi-threaded
+# decoding when RasterIO() requests intersect several tiles/strips.
+export GDAL_NUM_THREADS=ALL_CPUS
+
 # NOTE: change nodata value to 0, projection to EPSG: 4326, and merge scenes as a mosaic.
 
 year=$1

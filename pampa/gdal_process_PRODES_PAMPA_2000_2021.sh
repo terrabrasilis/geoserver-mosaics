@@ -40,20 +40,16 @@ echo
 echo "Shapefile"
 
 ## PAMPA
-#shapefile="/[path]/shapefiles/limite_pampa/biome_border_4326_newIBGE.shp" # <- CHANGE ME
-shapefile="/home/adeline/Dropbox/github_projects/geoserver-mosaics/shapefiles/limite_pampa/biome_border_4326_newIBGE.shp" # <- CHANGE ME
+shapefile="${mydir}/shapefiles/limite_pampa/biome_border_4326_newIBGE.shp" # <- CHANGE ME
 printf $shapefile
 
-#shapefile_grid="/[path]/shapefiles/limite_pampa/grid_landsat_tm_Pampa_crop_4326_newIBGE_v2.shp" # <- CHANGE ME
-shapefile_grid="/home/adeline/Dropbox/github_projects/geoserver-mosaics/shapefiles/limite_pampa/grid_landsat_tm_Pampa_crop_4326_newIBGE_v2.shp" # <- CHANGE ME
+shapefile_grid="${mydir}/shapefiles/limite_pampa/grid_landsat_tm_Pampa_crop_4326_newIBGE_v2.shp" # <- CHANGE ME
 printf $shapefile_grid
 
-#rscript_file="/[path]/pampa/script_r_cut_images_by_grid_pampa.R" # <- CHANGE ME
-rscript_file="/home/adeline/Dropbox/github_projects/geoserver-mosaics/pampa/script_r_cut_images_by_grid_pampa.R" # <- CHANGE ME
+rscript_file="${mydir}/../pampa/script_r_cut_images_by_grid_pampa.R" # <- CHANGE ME
 printf $rscript_file
 
-#pyscript_file="/[path]/geoserver-mosaics/sentinel_hist.py" # <- CHANGE ME
-pyscript_file="/home/adeline/Dropbox/github_projects/geoserver-mosaics/sentinel_hist.py" # <- CHANGE ME
+pyscript_file="${mydir}/../tools/sentinel_hist.py"
 printf $pyscript_file
 
 

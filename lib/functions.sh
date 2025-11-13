@@ -37,3 +37,18 @@ fileExistsOrExit(){
         exit 1
     fi;
 }
+
+# join tiles into raw mosaic
+generate_raw_mosaic(){
+    INPUT_FILES="${1}"
+    OUTPUT_FILE="${2}"
+    DATA_DIR="${3}"
+
+    cd ${DATA_DIR}
+
+    gdalbuildvrt "${OUTPUT_FILE}.vrt" ${INPUT_FILES}
+
+    gdal_translate -of GTiff -co "COMPRESS=LZW" -co BIGTIFF=YES "${OUTPUT_FILE}.vrt" "${OUTPUT_FILE}.tif"
+
+    cd -
+}

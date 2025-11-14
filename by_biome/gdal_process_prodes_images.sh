@@ -93,7 +93,7 @@ tmp_dir=tempCopy
 mkdir -p $tmp_dir
 echo "Copying files to: ${tmp_dir}"
 
-cp -a "${data_dir}/*.tif" "${tmp_dir}/"
+cp -a ${data_dir}/*.tif ${tmp_dir}/
 
 echo "End of copying files: `date +%d-%m-%y_%H:%M:%S`"
 
@@ -101,7 +101,7 @@ echo
 echo "----- gdal reproject to EPSG:4326 AND Remove Alpha Band AND set NoData -----"
 echo
 
-cd "${tmp_dir}"
+cd ${tmp_dir}
 
 for file in *.tif; do
   filename=$(getFilename "${file}")
@@ -117,23 +117,40 @@ for file in *.tif; do
     SOURCE_SRC="-s_srs EPSG:4674"
   fi;
 
-  gdalwarp -of GTiff $SOURCE_SRC -t_srs "EPSG:4326" "${file}" "${tmp_dir}/${filename}_4326.${extension}"
-  gdal_translate -b 1 -b 2 -b 3 -of GTiff "${tmp_dir}/${filename}_4326.${extension}" "${tmp_dir}/${filename}_noalpha.${extension}"
-  gdalwarp -of GTiff -t_srs EPSG:4326 -srcnodata "255 255 255" -dstnodata "0 0 0" "${tmp_dir}/${filename}_noalpha.${extension}" "${tmp_dir}/${filename}_nodata.${extension}"
+  gdalwarp -of GTiff $SOURCE_SRC -t_srs "EPSG:4326" "${file}" "${filename}_4326.${extension}"
+  gdal_translate -b 1 -b 2 -b 3 -of GTiff "${filename}_4326.${extension}" "${filename}_noalpha.${extension}"
+  # get no data value
+  NODATA_VALUE=$(gdalinfo "${filename}_noalpha.${extension}" | grep "NoData Value" | awk -F'=' '{print $2}' | head -n 1)
+  # change pixel value from 0 to 1
+  gdal_calc.py --co="COMPRESS=LZW" -A "${filename}_noalpha.${extension}" --A_band=1 \
+  -B "${filename}_noalpha.${extension}" --B_band=1 \
+  -C "${filename}_noalpha.${extension}" --C_band=1 \
+  --calc="((A==0)*1 + (B==0)*1 + (C==0)*1)" \
+  --outfile="${filename}_nodata_step_1.${extension}"
+  # unset no data
+  gdal_edit.py -unsetnodata "${filename}_nodata_step_1.${extension}"
+  # change pixel value of no data to 0
+  gdal_calc.py --co="COMPRESS=LZW" -A "${filename}_nodata_step_1.${extension}" --A_band=1 \
+  -B "${filename}_nodata_step_1.${extension}" --B_band=1 \
+  -C "${filename}_nodata_step_1.${extension}" --C_band=1 \
+  --calc="((A==${NODATA_VALUE})*0 + (B==${NODATA_VALUE})*0 + (C==${NODATA_VALUE})*0)" \
+  --outfile="${filename}_nodata.${extension}"
+  # set no data to 0
+  gdal_edit.py -a_nodata 0 "${filename}_nodata.${extension}"
 done
 
 echo "End of reproject to EPSG:4326: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
-echo "----- remove temporary files -----"
-rm -rf ${tmp_dir}/*_4326.tif
-rm -rf ${tmp_dir}/*_noalpha.tif
-
-echo
 echo "----- merge all scenes -----"
-gdal_merge.py -n 0 -a_nodata 0 -of GTiff -o ${data_dir}/mosaic_${year}.tif ${tmp_dir}/*_nodata.tif
+gdal_merge.py -n 0 -a_nodata 0 -of GTiff -o ${data_dir}/mosaic_${year}.tif ./*_nodata.tif
 echo
 echo "End of merge all scenes: `date +%d-%m-%y_%H:%M:%S`"
+
+echo
+echo "----- remove temporary files -----"
+cd -
+rm -rf ${tmp_dir}
 
 echo
 echo "----- gdal cutline -----"
@@ -149,7 +166,7 @@ echo "End of resample mosaic: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
 echo "----- build overview mosaic -----"
-gdaladdo --config COMPRESS_OVERVIEW LZW ${data_dir}/mosaic_${year}_${biome}.tif 2 4 8 16 32 64 128
+gdaladdo --config COMPRESS_OVERVIEW LZW ${data_dir}/mosaic_${year}_${biome}.tif 2 4 8 16 32 64 128 256 512 1024 2048 4096
 echo
 echo "Script has been executed successfully"
 echo

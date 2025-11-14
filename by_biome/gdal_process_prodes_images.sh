@@ -123,16 +123,16 @@ for file in *.tif; do
   NODATA_VALUE=$(gdalinfo "${filename}_noalpha.${extension}" | grep "NoData Value" | awk -F'=' '{print $2}' | head -n 1)
   # change pixel value from 0 to 1
   gdal_calc.py --co="COMPRESS=LZW" -A "${filename}_noalpha.${extension}" --A_band=1 \
-  -B "${filename}_noalpha.${extension}" --B_band=1 \
-  -C "${filename}_noalpha.${extension}" --C_band=1 \
+  -B "${filename}_noalpha.${extension}" --B_band=2 \
+  -C "${filename}_noalpha.${extension}" --C_band=3 \
   --calc="((A==0)*1 + (B==0)*1 + (C==0)*1)" \
   --outfile="${filename}_nodata_step_1.${extension}"
   # unset no data
   gdal_edit.py -unsetnodata "${filename}_nodata_step_1.${extension}"
   # change pixel value of no data to 0
   gdal_calc.py --co="COMPRESS=LZW" -A "${filename}_nodata_step_1.${extension}" --A_band=1 \
-  -B "${filename}_nodata_step_1.${extension}" --B_band=1 \
-  -C "${filename}_nodata_step_1.${extension}" --C_band=1 \
+  -B "${filename}_nodata_step_1.${extension}" --B_band=2 \
+  -C "${filename}_nodata_step_1.${extension}" --C_band=3 \
   --calc="((A==${NODATA_VALUE})*0 + (B==${NODATA_VALUE})*0 + (C==${NODATA_VALUE})*0)" \
   --outfile="${filename}_nodata.${extension}"
   # set no data to 0
@@ -143,18 +143,18 @@ echo "End of reproject to EPSG:4326: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
 echo "----- merge all scenes -----"
-gdal_merge.py -n 0 -a_nodata 0 -of GTiff -o ${data_dir}/mosaic_${year}.tif ./*_nodata.tif
+gdal_merge.py -ot Byte -n 0 -a_nodata 0 -init 0 -of GTiff -co BIGTIFF=YES -co COMPRESS=LZW -wo OPTIMIZE_SIZE=TRUE -o ${data_dir}/mosaic_${year}.tif ./*_nodata.tif
 echo
 echo "End of merge all scenes: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
 echo "----- remove temporary files -----"
 cd -
-rm -rf ${tmp_dir}
+#rm -rf ${tmp_dir}
 
 echo
 echo "----- gdal cutline -----"
-gdalwarp -ot Byte -q -of GTiff -srcnodata "0 0 0" -dstalpha -cutline ${shapefile} -crop_to_cutline -co BIGTIFF=YES -co COMPRESS=LZW -wo OPTIMIZE_SIZE=TRUE ${data_dir}/mosaic_${year}.tif ${data_dir}/mosaic_${year}_${biome}.tif
+gdalwarp -ot Byte -q -of GTiff -srcnodata "0 0 0" -cutline ${shapefile} -crop_to_cutline -co BIGTIFF=YES -co COMPRESS=LZW -wo OPTIMIZE_SIZE=TRUE ${data_dir}/mosaic_${year}.tif ${data_dir}/mosaic_${year}_${biome}.tif
 echo
 echo "End of cutline using shapefile of biome border: `date +%d-%m-%y_%H:%M:%S`"
 

@@ -105,7 +105,7 @@ echo
 
 cd ${tmp_dir}
 
-for file in *.tif; do
+for file in ${data_dir}/*.tif; do
   filename=$(getFilename "${file}")
   extension=$(getExtension "${file}")
 

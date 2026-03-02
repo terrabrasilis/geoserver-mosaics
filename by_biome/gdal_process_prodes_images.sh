@@ -90,12 +90,14 @@ echo
 
 cd ${data_dir}
 tmp_dir=tempCopy
-mkdir -p $tmp_dir
-echo "Copying files to: ${tmp_dir}"
 
-#cp -a ${data_dir}/*.tif ${tmp_dir}/
+if [[ ! -d "${tmp_dir}" ]]; then
 
-echo "End of copying files: `date +%d-%m-%y_%H:%M:%S`"
+  mkdir -p $tmp_dir
+  echo "Copying files to: ${tmp_dir}"
+  cp -a ${data_dir}/*.tif ${tmp_dir}/
+  echo "End of copying files: `date +%d-%m-%y_%H:%M:%S`"
+fi;
 
 echo
 echo "----- gdal reproject to EPSG:4326 AND Remove Alpha Band AND set NoData -----"
@@ -107,45 +109,38 @@ for file in *.tif; do
   filename=$(getFilename "${file}")
   extension=$(getExtension "${file}")
 
-  # read the source projection from input file
-  SOURCE_SRC=""
-  SRC_TEST="$(gdalinfo "${file}" 2>/dev/null | grep -oP 'GEOGCRS\["unknown",')"
-  if [[ " GEOGCRS[\"unknown\", " = " ${SRC_TEST} " ]]; then
-    # if is unknown so force the EPSG: 4674 (used on Cerrado imagens and need to be review for other biomes)
-    echo "WARNING: found unknown projection for: ${file}"
-    echo "WARNING: force geographical/SIRGAS 2000 (EPSG:4674) as INPUT projection."
-    SOURCE_SRC="-s_srs EPSG:4674"
+  # test if output file exists. If yes, skip the process.
+  if [[ ! -f "${filename}_nodata.${extension}" ]]; then
+  
+    gdalwarp -overwrite -of GTiff -t_srs "EPSG:4326" "${file}" "${filename}_4326.${extension}"
+    gdal_translate -b 1 -b 2 -b 3 -of GTiff "${filename}_4326.${extension}" "${filename}_noalpha.${extension}"
+
+    # get no data value
+    NODATA_VALUE=$(gdalinfo "${filename}_noalpha.${extension}" | grep "NoData Value" | awk -F'=' '{print $2}' | head -n 1)
+    # change pixel value from 0 to 1
+    gdal_calc.py --co="COMPRESS=LZW" --overwrite \
+    -A "${filename}_noalpha.${extension}" --A_band=1 \
+    -B "${filename}_noalpha.${extension}" --B_band=2 \
+    -C "${filename}_noalpha.${extension}" --C_band=3 \
+    --calc="A*(A>0) + 1*(A==0)" \
+    --calc="B*(B>0) + 1*(B==0)" \
+    --calc="C*(C>0) + 1*(C==0)" \
+    --outfile="${filename}_nodata_step_1.${extension}"
+    
+    # unset no data
+    gdal_edit.py -unsetnodata "${filename}_nodata_step_1.${extension}"
+    # change pixel value of no data to 0
+    gdal_calc.py --co="COMPRESS=LZW" --type=Byte --overwrite --NoDataValue=0 \
+    -A "${filename}_nodata_step_1.${extension}" --A_band=1 \
+    -B "${filename}_nodata_step_1.${extension}" --B_band=2 \
+    -C "${filename}_nodata_step_1.${extension}" --C_band=3 \
+    --calc="A*(A>0) + 0*(A==${NODATA_VALUE})" \
+    --calc="B*(B>0) + 0*(B==${NODATA_VALUE})" \
+    --calc="C*(C>0) + 0*(C==${NODATA_VALUE})" \
+    --outfile="${filename}_nodata.${extension}"
+  else
+    echo "Skip transform process to ${filename}"
   fi;
-
-  gdalwarp -overwrite -of GTiff $SOURCE_SRC -t_srs "EPSG:4326" "${file}" "${filename}_4326.${extension}"
-  gdal_translate -b 1 -b 2 -b 3 -of GTiff "${filename}_4326.${extension}" "${filename}_noalpha.${extension}"
-
-  # get no data value
-  NODATA_VALUE=$(gdalinfo "${filename}_noalpha.${extension}" | grep "NoData Value" | awk -F'=' '{print $2}' | head -n 1)
-  # change pixel value from 0 to 1
-  gdal_calc.py --co="COMPRESS=LZW" --overwrite \
-  -A "${filename}_noalpha.${extension}" --A_band=1 \
-  -B "${filename}_noalpha.${extension}" --B_band=2 \
-  -C "${filename}_noalpha.${extension}" --C_band=3 \
-  --calc="A*(A>0) + 1*(A==0)" \
-  --calc="B*(B>0) + 1*(B==0)" \
-  --calc="C*(C>0) + 1*(C==0)" \
-  --outfile="${filename}_nodata_step_1.${extension}"
-  
-  # unset no data
-  gdal_edit.py -unsetnodata "${filename}_nodata_step_1.${extension}"
-  # change pixel value of no data to 0
-  gdal_calc.py --co="COMPRESS=LZW" --type=Byte --overwrite --NoDataValue=0 \
-  -A "${filename}_nodata_step_1.${extension}" --A_band=1 \
-  -B "${filename}_nodata_step_1.${extension}" --B_band=2 \
-  -C "${filename}_nodata_step_1.${extension}" --C_band=3 \
-  --calc="A*(A>0) + 0*(A==${NODATA_VALUE})" \
-  --calc="B*(B>0) + 0*(B==${NODATA_VALUE})" \
-  --calc="C*(C>0) + 0*(C==${NODATA_VALUE})" \
-  --outfile="${filename}_nodata.${extension}"
-  
-  # used to debug. stop after first iteraction
-  exit
 done
 
 echo "End of reproject to EPSG:4326: `date +%d-%m-%y_%H:%M:%S`"

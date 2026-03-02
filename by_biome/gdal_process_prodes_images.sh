@@ -93,7 +93,7 @@ tmp_dir=tempCopy
 mkdir -p $tmp_dir
 echo "Copying files to: ${tmp_dir}"
 
-cp -a ${data_dir}/*.tif ${tmp_dir}/
+#cp -a ${data_dir}/*.tif ${tmp_dir}/
 
 echo "End of copying files: `date +%d-%m-%y_%H:%M:%S`"
 
@@ -117,26 +117,35 @@ for file in *.tif; do
     SOURCE_SRC="-s_srs EPSG:4674"
   fi;
 
-  gdalwarp -of GTiff $SOURCE_SRC -t_srs "EPSG:4326" "${file}" "${filename}_4326.${extension}"
+  gdalwarp -overwrite -of GTiff $SOURCE_SRC -t_srs "EPSG:4326" "${file}" "${filename}_4326.${extension}"
   gdal_translate -b 1 -b 2 -b 3 -of GTiff "${filename}_4326.${extension}" "${filename}_noalpha.${extension}"
+
   # get no data value
   NODATA_VALUE=$(gdalinfo "${filename}_noalpha.${extension}" | grep "NoData Value" | awk -F'=' '{print $2}' | head -n 1)
   # change pixel value from 0 to 1
-  gdal_calc.py --co="COMPRESS=LZW" -A "${filename}_noalpha.${extension}" --A_band=1 \
+  gdal_calc.py --co="COMPRESS=LZW" --overwrite \
+  -A "${filename}_noalpha.${extension}" --A_band=1 \
   -B "${filename}_noalpha.${extension}" --B_band=2 \
   -C "${filename}_noalpha.${extension}" --C_band=3 \
-  --calc="((A==0)*1 + (B==0)*1 + (C==0)*1)" \
+  --calc="A*(A>0) + 1*(A==0)" \
+  --calc="B*(B>0) + 1*(B==0)" \
+  --calc="C*(C>0) + 1*(C==0)" \
   --outfile="${filename}_nodata_step_1.${extension}"
+  
   # unset no data
   gdal_edit.py -unsetnodata "${filename}_nodata_step_1.${extension}"
   # change pixel value of no data to 0
-  gdal_calc.py --co="COMPRESS=LZW" -A "${filename}_nodata_step_1.${extension}" --A_band=1 \
+  gdal_calc.py --co="COMPRESS=LZW" --type=Byte --overwrite --NoDataValue=0 \
+  -A "${filename}_nodata_step_1.${extension}" --A_band=1 \
   -B "${filename}_nodata_step_1.${extension}" --B_band=2 \
   -C "${filename}_nodata_step_1.${extension}" --C_band=3 \
-  --calc="((A==${NODATA_VALUE})*0 + (B==${NODATA_VALUE})*0 + (C==${NODATA_VALUE})*0)" \
+  --calc="A*(A>0) + 0*(A==${NODATA_VALUE})" \
+  --calc="B*(B>0) + 0*(B==${NODATA_VALUE})" \
+  --calc="C*(C>0) + 0*(C==${NODATA_VALUE})" \
   --outfile="${filename}_nodata.${extension}"
-  # set no data to 0
-  gdal_edit.py -a_nodata 0 "${filename}_nodata.${extension}"
+  
+  # used to debug. stop after first iteraction
+  exit
 done
 
 echo "End of reproject to EPSG:4326: `date +%d-%m-%y_%H:%M:%S`"

@@ -147,7 +147,7 @@ echo "End of reproject to EPSG:4326: `date +%d-%m-%y_%H:%M:%S`"
 
 echo
 echo "----- merge all scenes -----"
-gdal_merge.py -ot Byte -n 0 -a_nodata 0 -init 0 -of GTiff -co BIGTIFF=YES -co COMPRESS=LZW -wo OPTIMIZE_SIZE=TRUE -o ${data_dir}/mosaic_${year}.tif ./*_nodata.tif
+gdal_merge.py -ot Byte -n 0 -a_nodata 0 -init 0 -of GTiff -co BIGTIFF=YES -co COMPRESS=LZW -o ${data_dir}/mosaic_${year}.tif ./*_nodata.tif
 echo
 echo "End of merge all scenes: `date +%d-%m-%y_%H:%M:%S`"
 

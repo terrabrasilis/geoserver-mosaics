@@ -41,6 +41,15 @@ You can use docker to run some of these applications in containers. You may need
 The scripts can be run on your system as follows:
 
 ```bash
+# The general version, in by_biome/ dir, will be use for all biomes.
+# The parameters are:
+# YYYY = year with four digits, used to put into the generated file name
+# biome = the biome name, used to put into the generated file name
+# input_dir = Where the input files are. ex.: /pve8/storage/mosaic_process_data/pampa/2024
+./gdal_process_prodes_images.sh <YYYY> <biome> <input_dir>
+```
+
+```bash
 user@machine:~/[directory_with_raster_year]$ /[path_to_repository]/cerrado/gdal_process_PRODES_CERRADO_2022_valpha_.sh [year]
 ```
 Example:

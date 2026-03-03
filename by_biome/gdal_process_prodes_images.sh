@@ -144,7 +144,6 @@ for file in ${data_dir}/*.tif; do
   else
     echo "Skip transform process to ${filename}"
   fi;
-  exit
 done
 
 echo "End of reproject to EPSG:4326: `date +%d-%m-%y_%H:%M:%S`"

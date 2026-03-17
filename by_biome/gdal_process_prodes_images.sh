@@ -111,14 +111,18 @@ for file in ${data_dir}/*.tif; do
     gdalwarp -overwrite -of GTiff -t_srs "EPSG:4326" "${file}" "${filename}_4326.${extension}"
     gdal_translate -b 1 -b 2 -b 3 -of GTiff "${filename}_4326.${extension}" "${filename}_noalpha.${extension}"
 
+    echo "----- resample image to 30m -----"
+    gdalwarp -ot Byte -of GTiff -co BIGTIFF=YES -co COMPRESS=LZW -wo OPTIMIZE_SIZE=TRUE -tr ${PIXEL_SIZE} ${filename}_noalpha.${extension} ${filename}_noalpha_30m.${extension}
+    echo
+
     # get no data value
-    NODATA_VALUE=$(gdalinfo "${filename}_noalpha.${extension}" | grep "NoData Value" | awk -F'=' '{print $2}' | head -n 1)
+    NODATA_VALUE=$(gdalinfo "${filename}_noalpha_30m.${extension}" | grep "NoData Value" | awk -F'=' '{print $2}' | head -n 1)
 
     # change pixel value from 0 to 1
     gdal_calc.py --co="COMPRESS=LZW" --overwrite \
-    -A "${filename}_noalpha.${extension}" --A_band=1 \
-    -B "${filename}_noalpha.${extension}" --B_band=2 \
-    -C "${filename}_noalpha.${extension}" --C_band=3 \
+    -A "${filename}_noalpha_30m.${extension}" --A_band=1 \
+    -B "${filename}_noalpha_30m.${extension}" --B_band=2 \
+    -C "${filename}_noalpha_30m.${extension}" --C_band=3 \
     --calc="A*(A>0) + 1*logical_and((A==0),logical_or((B>0),(C>0)))" \
     --calc="B*(B>0) + 1*logical_and((B==0),logical_or((A>0),(C>0)))" \
     --calc="C*(C>0) + 1*logical_and((C==0),logical_or((A>0),(B>0)))" \
@@ -182,23 +186,9 @@ if [[ -f "${data_dir}/mosaic_${year}_cutline.tif" ]]; then
 fi;
 
 echo
-echo "----- resample mosaic to 30m -----"
-gdalwarp -ot Byte -of GTiff -co BIGTIFF=YES -co COMPRESS=LZW -wo OPTIMIZE_SIZE=TRUE -tr ${PIXEL_SIZE} ${data_dir}/mosaic_${year}_cutline.tif ${data_dir}/mosaic_${year}_${biome}_30m.tif
-echo
-echo "End of resample mosaic: `date +%d-%m-%y_%H:%M:%S`"
-
-# if resample file is ok, remove temporary file
-if [[ -f "${data_dir}/mosaic_${year}_${biome}_30m.tif" ]]; then
-  NODATA_VALUE=$(gdalinfo "${data_dir}/mosaic_${year}_${biome}_30m.tif" | grep "NoData Value" | awk -F'=' '{print $2}' | head -n 1)
-  if [[ "${NODATA_VALUE}" == "0" ]]; then
-    rm ${data_dir}/mosaic_${year}_cutline.tif
-  fi;
-fi;
-
-echo
 echo "----- build overview mosaic -----"
-gdaladdo --config COMPRESS_OVERVIEW LZW ${data_dir}/mosaic_${year}_${biome}_30m.tif 2 4 8 16 32 64 128 256 512 1024 2048 4096
-mv ${data_dir}/mosaic_${year}_${biome}_30m.tif ${data_dir}/mosaic_${year}_${biome}.tif
+gdaladdo --config COMPRESS_OVERVIEW LZW ${data_dir}/mosaic_${year}_cutline.tif 2 4 8 16 32 64 128 256 512 1024 2048 4096
+mv ${data_dir}/mosaic_${year}_cutline.tif ${data_dir}/mosaic_${year}_${biome}.tif
 echo
 echo "Script has been executed successfully"
 echo
